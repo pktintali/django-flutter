@@ -2,11 +2,16 @@ from django.urls import path
 from .views import *
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework import routers
+from rest_framework_nested import routers
 
 router = routers.DefaultRouter()
 router.register('miscards',MisCardViewSet)
+router.register('users',UserViewSet)
 
-urlpatterns = [
+miscard_router = routers.NestedDefaultRouter(router, 'miscards', lookup='miscard')
+miscard_router.register('comments', CommentViewSet, basename='miscard-comments')
+
+urlpatterns = [ 
     path('products/', ProductView.as_view()),
     path('favorit/', FavoritView.as_view()),
     path('login/', obtain_auth_token),
@@ -17,5 +22,5 @@ urlpatterns = [
     path('delatecartprod/', DelateCarProduct.as_view()),
     path('deletecart/', DelateCart.as_view()),
     path('ordernow/', OrderCreate.as_view()),
-]+router.urls
+]+router.urls+miscard_router.urls
 # /api/

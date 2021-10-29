@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from .models import *
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user, get_user_model
 from rest_framework.authtoken.models import Token
+#dependency
+from core.models import User
+from django.conf import settings
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -11,7 +14,7 @@ class ProductSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-User = get_user_model()
+# User = get_user_model()
 
 
 class Userserializer(serializers.ModelSerializer):
@@ -47,14 +50,55 @@ class OrdersSerializers(serializers.ModelSerializer):
         depth = 1
 
 
+class SimpleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','username','first_name','last_name']
 class MisCardSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+    #TODO Handle Select Related 
+    class Meta:
+        model = MisCard
+        fields = ['id','created_at','title','mistake','lesson','user']
+
+class MisCardAddSerializer(serializers.ModelSerializer):
+    #TODO Handle Select Related 
     class Meta:
         model = MisCard
         fields = ['id','created_at','title','mistake','lesson']
+    
+    def create(self, validated_data):
+        user = self.context['user']
+        return MisCard.objects.create(user=user,**validated_data)
 
 
+
+# class SimpleCommentUserSirializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ['id','username','first_name','last_name']
 class CommentSerializer(serializers.ModelSerializer):
 
+    user = SimpleUserSerializer()
     class Meta:
         model = Comment
-        fields = ['id','description','created_at']
+        fields = ['id','description','created_at','miscard_id','user']
+    
+    def create(self, validated_data):
+        miscard_id = self.context['miscard_id']
+        return Comment.objects.create(miscard_id=miscard_id, **validated_data)
+
+class CommentAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id','description','created_at','miscard_id']
+    
+    def create(self, validated_data):
+        miscard_id = self.context['miscard_id']
+        user_id = self.context['user_id']
+        return Comment.objects.create(miscard_id=miscard_id,user_id=user_id, **validated_data)
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','username','password','first_name','last_name','email']

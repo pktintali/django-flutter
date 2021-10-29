@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from rest_framework import views
 from .serializers import *
 from .models import *
@@ -221,11 +222,41 @@ class OrderCreate(APIView):
 class MisCardViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ]
     # authentication_classes = [TokenAuthentication, ]
-    queryset = MisCard.objects.all()
+    queryset = MisCard.objects.select_related('user').all()
     serializer_class = MisCardSerializer
     search_fields = ['title','mistake','lesson']
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return MisCardAddSerializer
+        if self.request.method == 'GET':
+            return MisCardSerializer
+        else:
+            return MisCardAddSerializer
+    
+    def get_serializer_context(self):
+        return {'user':self.request.user}
+    
 
 class CommentViewSet(ModelViewSet):
-    serializer_class = CommentSerializer
-    queryset = Comment
+    permission_classes = [IsAuthenticated, ]
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return CommentSerializer
+        else:
+            return CommentAddSerializer
+
+    def get_queryset(self):\
+        return Comment.objects\
+                      .filter(miscard_id=self.kwargs['miscard_pk'])\
+                      .select_related('user')\
+                      .all()
+    
+    def get_serializer_context(self):
+        return {'miscard_id': self.kwargs['miscard_pk'],'user_id':self.request.user.id}
+
+
+class UserViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()

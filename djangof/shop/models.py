@@ -1,6 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
-
+from django.conf import settings
 
 class Category(models.Model):
     title = models.CharField(max_length=100)
@@ -25,7 +24,7 @@ class Product(models.Model):
 
 class Favorire(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.Case)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.Case)
     isFavorit = models.BooleanField(default=False)
 
     def __str__(self):
@@ -33,7 +32,7 @@ class Favorire(models.Model):
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     total = models.PositiveIntegerField()
     isComplit = models.BooleanField(default=False)
     date = models.DateField(auto_now_add=True)
@@ -65,7 +64,7 @@ class MisCard(models.Model):
     mistake = models.TextField()
     lesson = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     def __str__(self) -> str:
         return self.title[:25]+'...'
 
@@ -74,3 +73,4 @@ class Comment(models.Model):
     miscard = models.ForeignKey(MisCard,on_delete=models.CASCADE,related_name='comments')
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
