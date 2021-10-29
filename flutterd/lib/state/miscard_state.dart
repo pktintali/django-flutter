@@ -33,7 +33,7 @@ class MiscardState with ChangeNotifier {
     }
   }
 
-  Future<bool> addMiscard(String title, String mistake,String lesson) async {
+  Future<bool> addMiscard(String title, String mistake,String lesson,int user_id) async {
     String url = 'http://127.0.0.1:8000/api/miscards/';
     var token = storage.getItem('token');
     try {
@@ -42,7 +42,7 @@ class MiscardState with ChangeNotifier {
             "Content-Type": "application/json",
             'Authorization': "token $token"
           },
-          body: json.encode({"title": title, "mistake": mistake,"lesson":lesson}));
+          body: json.encode({"title": title,"mistake":mistake,"lesson":lesson,"user":user_id}));
       var data = json.decode(response.body) as Map;
       print(data);
       if (data["error"] == false) {

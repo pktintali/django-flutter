@@ -15,6 +15,7 @@ class _RegisterScreensState extends State<RegisterScreens> {
   String _username = '';
   String _password = '';
   String _confpassword = '';
+  String _userEmail = '';
 
   _registerNow() async {
     var isvalid = _form.currentState.validate();
@@ -25,7 +26,7 @@ class _RegisterScreensState extends State<RegisterScreens> {
     bool isregis = await Provider.of<UserState>(
       context,
       listen: false,
-    ).registernow(_username, _password);
+    ).registernow(_username, _password,_userEmail);
     if (isregis) {
       Navigator.of(context).pushReplacementNamed(LoginScrrens.routeName);
     } else {
@@ -72,6 +73,20 @@ class _RegisterScreensState extends State<RegisterScreens> {
                   ),
                   onSaved: (v) {
                     _username = v;
+                  },
+                ),
+                TextFormField(
+                  validator: (v) {
+                    if (v.isEmpty) {
+                      return 'Enter Your Email';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Email",
+                  ),
+                  onSaved: (v) {
+                    _userEmail= v;
                   },
                 ),
                 TextFormField(

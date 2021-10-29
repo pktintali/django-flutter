@@ -3,10 +3,15 @@ import 'package:flutterd/models/miscard.dart';
 import 'package:flutterd/state/miscard_state.dart';
 import 'package:provider/provider.dart';
 
-class TestScreen extends StatelessWidget {
+class TestScreen extends StatefulWidget {
   static final String routeName = 'test_screen';
   const TestScreen({Key key}) : super(key: key);
 
+  @override
+  State<TestScreen> createState() => _TestScreenState();
+}
+
+class _TestScreenState extends State<TestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,8 +50,10 @@ class TestScreen extends StatelessWidget {
               child: Text('POST'),
               onPressed: () async {
                 await Provider.of<MiscardState>(context, listen: false)
-                    .addMiscard('Test 4', 'Mistake 4', 'Lesson 4')
-                    .then((value) => print(value));
+                    .addMiscard('Patched Title', 'Mistake 4', 'Lesson 4',1)
+                    .then((value) => setState(() {
+                          print(value);
+                        }));
               },
             ),
           )

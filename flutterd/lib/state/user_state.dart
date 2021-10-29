@@ -29,14 +29,14 @@ class UserState with ChangeNotifier {
     }
   }
 
-  Future<bool> registernow(String uname, String passw) async {
+  Future<bool> registernow(String uname, String passw,String email) async {
     String url = 'http://127.0.0.1:8000/api/register/';
     try {
       http.Response response = await http.post(url,
           headers: {
             "Content-Type": "application/json",
           },
-          body: json.encode({"username": uname, "password": passw}));
+          body: json.encode({"username": uname, "password": passw,"email":email}));
       var data = json.decode(response.body) as Map;
       print(data);
       if (data["error"] == false) {
