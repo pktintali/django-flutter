@@ -50,10 +50,11 @@ class _TestScreenState extends State<TestScreen> {
               child: Text('POST'),
               onPressed: () async {
                 await Provider.of<MiscardState>(context, listen: false)
-                    .addMiscard('Patched Title', 'Mistake 4', 'Lesson 4',1)
-                    .then((value) => setState(() {
-                          print(value);
-                        }));
+                    .testing();
+                // .addMiscard('Patched Title', 'Mistake 4', 'Lesson 4',1)
+                // .then((value) => setState(() {
+                //       print(value);
+                //     }));
               },
             ),
           )

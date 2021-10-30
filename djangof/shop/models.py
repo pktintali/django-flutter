@@ -74,3 +74,51 @@ class Comment(models.Model):
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+
+
+class Like(models.Model):
+    miscard = models.ForeignKey(MisCard,on_delete=models.CASCADE,related_name='likes')
+    liked_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('miscard','user')
+
+class DisLike(models.Model):
+    miscard = models.ForeignKey(MisCard,on_delete=models.CASCADE,related_name='dislikes')
+    disliked_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('miscard','user')
+
+class CommentLike(models.Model):
+    comment = models.ForeignKey(Comment,on_delete=models.CASCADE,related_name='comment_likes')
+    liked_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('comment','user')
+
+class CommentDisLike(models.Model):
+    comment = models.ForeignKey(Comment,on_delete=models.CASCADE,related_name='comment_dislikes')
+    disliked_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('comment','user')
+    
+
+class Profile(models.Model):
+    banner = models.ImageField(upload_to="banners/")
+    profile_pic = models.ImageField(upload_to="profile_pics/")
+    dob = models.DateField(null=True, blank=True)
+    verified = models.BooleanField(default=False)
+    about = models.TextField()
+    impactor_badge = models.BooleanField(default=False)
+    admin_badge = models.BooleanField(default=False)
+    helper_badge = models.BooleanField(default=False)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+
+
+class Followings(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='user')
+    followed_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='followed_by')
+    class Meta:
+        unique_together = ('user','followed_by')

@@ -1,13 +1,14 @@
-from django.db.models.query import QuerySet
-from rest_framework import views
-from .serializers import *
-from .models import *
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.viewsets import ModelViewSet
+from django.db.models.aggregates import Count
+from shop.pagination import DefaultPagination
 
+from .serializers import *
+from .models import *
 class ProductView(APIView):
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
@@ -196,7 +197,6 @@ class DelateCart(APIView):
 class OrderCreate(APIView):
     permission_classes = [IsAuthenticated, ]
     authentication_classes = [TokenAuthentication, ]
-
     def post(self, request):
         try:
             data = request.data
@@ -222,9 +222,14 @@ class OrderCreate(APIView):
 class MisCardViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ]
     # authentication_classes = [TokenAuthentication, ]
-    queryset = MisCard.objects.select_related('user').all()
+    pagination_class = DefaultPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['user_id']
+    queryset = MisCard.objects.annotate(
+        likes_count=Count('likes'),dislikes_count=Count('dislikes'),comments_count=Count('comments'))\
+        .select_related('user').order_by('id').all()
     serializer_class = MisCardSerializer
-    search_fields = ['title','mistake','lesson']
+    search_fields = ['title']
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -240,6 +245,7 @@ class MisCardViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ]
+    # authentication_classes = [TokenAuthentication, ]
     def get_serializer_class(self):
         if self.request.method=='GET':
             return CommentSerializer
@@ -248,15 +254,138 @@ class CommentViewSet(ModelViewSet):
 
     def get_queryset(self):\
         return Comment.objects\
+                      .annotate(likes_count=Count('comment_likes'),dislikes_count=Count('comment_dislikes'))\
                       .filter(miscard_id=self.kwargs['miscard_pk'])\
                       .select_related('user')\
                       .all()
     
     def get_serializer_context(self):
         return {'miscard_id': self.kwargs['miscard_pk'],'user_id':self.request.user.id}
+class LikeViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    # authentication_classes = [TokenAuthentication, ]
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return LikeSerializer
+        else:
+            return LikeAddSerializer
+
+    def get_queryset(self):\
+        return Like.objects\
+                      .filter(miscard_id=self.kwargs['miscard_pk'])\
+                      .select_related('user')\
+                      .all()
+    
+    def get_serializer_context(self):
+        return {'miscard_id': self.kwargs['miscard_pk'],'user_id':self.request.user.id}
+class DisLikeViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    # authentication_classes = [TokenAuthentication, ]
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return DisLikeSerializer
+        else:
+            return DisLikeAddSerializer
+
+    def get_queryset(self):\
+        return DisLike.objects\
+                      .filter(miscard_id=self.kwargs['miscard_pk'])\
+                      .select_related('user')\
+                      .all()
+    
+    def get_serializer_context(self):
+        return {'miscard_id': self.kwargs['miscard_pk'],'user_id':self.request.user.id}
+class CommentLikeViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    # authentication_classes = [TokenAuthentication, ]
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return CommentLikeSerializer
+        else:
+            return CommentLikeAddSerializer
+
+    def get_queryset(self):\
+        return CommentLike.objects\
+                      .filter(comment_id=self.kwargs['comment_pk'])\
+                      .select_related('user')\
+                      .all()
+    
+    def get_serializer_context(self):
+        return {'comment_id': self.kwargs['comment_pk'],'user_id':self.request.user.id}
+class CommentDisLikeViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    # authentication_classes = [TokenAuthentication, ]
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return CommentDisLikeSerializer
+        else:
+            return CommentDisLikeAddSerializer
+
+    def get_queryset(self):\
+        return CommentDisLike.objects\
+                      .filter(comment_id=self.kwargs['comment_pk'])\
+                      .select_related('user')\
+                      .all()
+    
+    def get_serializer_context(self):
+        return {'comment_id': self.kwargs['comment_pk'],'user_id':self.request.user.id}
 
 
 class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ]
-    serializer_class = UserSerializer
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return  UserSerializer
+        else:
+            return UserAddSerializer
     queryset = User.objects.all()
+
+class CurrentUserViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return  UserSerializer
+        else:
+            return UserAddSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
+
+
+class AllLikesViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    pagination_class = DefaultPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['user_id','miscard_id']
+    queryset = Like.objects.order_by('id').all()
+    serializer_class = AllLikeSerializer
+
+
+class ProfileViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    serializer_class = ProfileSerializer
+    def get_queryset(self):\
+        return Profile.objects\
+                      .filter(user_id=self.kwargs['user_pk'])\
+                      .select_related('user')\
+                      .all()
+    def get_serializer_context(self):
+        return {'user_id': self.kwargs['user_pk']}
+
+
+class FollowingsViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated, ]
+    filter_backends = [DjangoFilterBackend]
+    pagination_class = DefaultPagination
+    filterset_fields = ['user_id','followed_by']
+    queryset = Followings.objects.order_by('id').all()
+
+
+    def get_serializer_class(self):
+        if self.request.method=='GET':
+            return FollowingsSerializer
+        else:
+            return FollowingsAddSerializer
+    def get_serializer_context(self):
+        return {'user_id': self.request.user}

@@ -9,6 +9,29 @@ class MiscardState with ChangeNotifier {
 
   List<MisCard> _miscards = [];
 
+  Future<bool> testing() async {
+    String url = 'http://127.0.0.1:8000/api/miscards/3/likes/';
+    var token = storage.getItem('token');
+    try {
+      http.Response response =
+          await http.post(url, headers: {'Authorization': "token $token"});
+      print(response.body);
+      // var data = json.decode(response.body) as List;
+      // print(data);
+      // List<MisCard> temp = [];
+      // data.forEach((element) {
+      //   MisCard product = MisCard.fromMap(element);
+      //   temp.add(product);
+      // });
+      // _miscards = temp;
+      // notifyListeners();
+      return true;
+    } catch (e) {
+      print("e getProducts");
+      print(e);
+      return false;
+    }
+  }
   Future<bool> getMisCards() async {
     String url = 'http://127.0.0.1:8000/api/miscards/';
     var token = storage.getItem('token');

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cart, MisCard, Product, CartProduct, Category, Order, Favorire
+from .models import *
 
 
-admin.site.register([Cart, Product, CartProduct, Category, Order, Favorire,MisCard ])
+admin.site.register([Profile,Followings,Cart, Product, CartProduct, Category, Order, Favorire,MisCard,Comment,Like,DisLike ])
