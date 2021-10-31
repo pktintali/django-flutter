@@ -57,19 +57,16 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 
 class MisCardSerializer(serializers.ModelSerializer):
     user = SimpleUserSerializer()
-    #TODO Handle Select Related 
     class Meta:
         model = MisCard
-        fields = ['id','created_at','title','mistake','lesson','user','likes_count','dislikes_count','comments_count']
-    likes_count = serializers.IntegerField()
-    dislikes_count = serializers.IntegerField()
-    comments_count = serializers.IntegerField()
-class MisCardAddSerializer(serializers.ModelSerializer):
-    #TODO Handle Select Related 
-    class Meta:
-        model = MisCard
-        fields = ['id','created_at','title','mistake','lesson']
+        fields = ['id','created_at','title','mistake','lesson','comment_allowed','likes_count','dislikes_count','user',]
     
+    likes_count = serializers.IntegerField(read_only=True)
+    dislikes_count = serializers.IntegerField(read_only=True)
+class MisCardAddSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = MisCard
+        fields = ['id','created_at','title','mistake','lesson','comment_allowed']
     def create(self, validated_data):
         user = self.context['user']
         return MisCard.objects.create(user=user,**validated_data)
@@ -80,8 +77,8 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id','description','created_at','miscard_id','user','likes_count','dislikes_count']
-    likes_count = serializers.IntegerField()
-    dislikes_count = serializers.IntegerField()
+    likes_count = serializers.IntegerField(read_only=True)
+    dislikes_count = serializers.IntegerField(read_only=True)
 class CommentAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -181,11 +178,55 @@ class UserAddSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username','password','first_name','last_name','email']
 
-    
+class SimpleMisCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MisCard
+        fields = ['id','created_at','title','mistake','lesson']
+
 class AllLikeSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+    miscard = SimpleMisCardSerializer()
     class Meta:
         model = Like
-        fields = ['id','user_id','miscard_id']
+        fields = ['id','user','miscard']
+class AllDisLikeSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+    miscard = SimpleMisCardSerializer()
+    class Meta:
+        model = DisLike
+        fields = ['id','user','miscard']
+class AllCommentsSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+    miscard = SimpleMisCardSerializer()
+    class Meta:
+        model = Comment
+        fields = ['id','miscard','description','user','created_at']
+class CreatorSimpleLikesSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer()
+    class Meta:
+        model = User
+        fields = ['user']
+class CreatorLikesSerializer(serializers.ModelSerializer):
+    miscard = CreatorSimpleLikesSerializer()
+    class Meta:
+        model = Like
+        fields = ['id','miscard','user']
+class SavedMisCardsSerializer(serializers.ModelSerializer):
+    miscard = SimpleMisCardSerializer()
+    class Meta:
+        model = SavedMisCard
+        fields = ['id','user','miscard']
+class SavedMisCardsAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedMisCard
+        fields = ['id','miscard']
+    
+    def create(self, validated_data):
+        user = self.context['user']
+        try:
+            return SavedMisCard.objects.create(user=user,**validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError('Can\'t save same card more than once')
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -197,14 +238,27 @@ class ProfileSerializer(serializers.ModelSerializer):
         return Profile.objects.create(user_id=user_id, **validated_data)
 
 class FollowingsSerializer(serializers.ModelSerializer):
+
+    user = SimpleUserSerializer()
+    followed_by = SimpleUserSerializer()
     class Meta:
         model = Followings
-        fields = ['id','user','followed_by']
+        fields = ['id','user','followed_by','follow_time']
 class FollowingsAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = Followings
-        fields = ['id','user']
+        fields = ['id','user','follow_time']
 
     def create(self, validated_data):
         followed_by = self.context['user_id']
         return Followings.objects.create(followed_by=followed_by,**validated_data)
+
+class DraftSerializer(serializers.ModelSerializer):
+    #TODO Handle Select Related 
+    class Meta:
+        model = Draft
+        fields = ['id','saved_at','title','mistake','lesson']
+    
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+        return Draft.objects.create(user_id=user_id,**validated_data)

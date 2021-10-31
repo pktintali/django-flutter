@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.base import Model
 
 class Category(models.Model):
     title = models.CharField(max_length=100)
@@ -63,6 +64,7 @@ class MisCard(models.Model):
     title = models.CharField(max_length=255)
     mistake = models.TextField()
     lesson = models.TextField()
+    comment_allowed = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     def __str__(self) -> str:
@@ -104,6 +106,12 @@ class CommentDisLike(models.Model):
     class Meta:
         unique_together = ('comment','user')
     
+class SavedMisCard(models.Model):
+    miscard = models.ForeignKey(MisCard,on_delete=models.CASCADE,related_name='saved_miscards')
+    saved_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    class Meta:
+        unique_together = ('miscard','user')
 
 class Profile(models.Model):
     banner = models.ImageField(upload_to="banners/")
@@ -119,6 +127,14 @@ class Profile(models.Model):
 
 class Followings(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='user')
+    follow_time = models.DateField(auto_now_add=True)
     followed_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='followed_by')
     class Meta:
         unique_together = ('user','followed_by')
+
+class Draft(models.Model):
+    title = models.CharField(max_length=255)
+    mistake = models.TextField()
+    lesson = models.TextField()
+    saved_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='draft_user')

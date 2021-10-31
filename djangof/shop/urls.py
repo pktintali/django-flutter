@@ -9,6 +9,9 @@ router.register('miscards',MisCardViewSet,basename='miscards')
 router.register('users',UserViewSet)
 router.register('currentuser',CurrentUserViewSet,basename='currentuser')
 router.register('likes',AllLikesViewSet,basename='likes')
+router.register('dislikes',AllDisLikesViewSet,basename='dislikes')
+router.register('comments',AllCommentsViewSet,basename='comments')
+router.register('saved_miscards',SavedMisCardsViewSet,basename='saved_miscards')
 router.register('followings',FollowingsViewSet,basename='followings')
 
 miscard_router = routers.NestedDefaultRouter(router, 'miscards', lookup='miscard')
@@ -22,9 +25,11 @@ comment_router.register('dislikes',CommentDisLikeViewSet,basename='comment-disli
 
 profile_router = routers.NestedDefaultRouter(router, 'users', lookup='user')
 profile_router.register('profile',ProfileViewSet,basename='profiles')
+profile_router.register('drafts',DraftViewSet,basename='drafts')
 
 current_user_profile_router = routers.NestedDefaultRouter(router, 'currentuser', lookup='user')
 current_user_profile_router.register('profile',ProfileViewSet,basename='profiles')
+current_user_profile_router.register('drafts',DraftViewSet,basename='drafts')
 
 urlpatterns = [ 
     path('products/', ProductView.as_view()),
@@ -37,5 +42,6 @@ urlpatterns = [
     path('delatecartprod/', DelateCarProduct.as_view()),
     path('deletecart/', DelateCart.as_view()),
     path('ordernow/', OrderCreate.as_view()),
+    path('creatorlikes/',CreatorLikeView.as_view()),
 ]+router.urls+miscard_router.urls+comment_router.urls+profile_router.urls+current_user_profile_router.urls
 # /api/
